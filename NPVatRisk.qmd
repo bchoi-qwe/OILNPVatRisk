@@ -1,0 +1,80 @@
+---
+title: "NPV@Risk Assignment: Valuing a Cold Lake to Synthetic Crude Upgrader"
+format: 
+  html:
+    embed-resources: true
+editor: source
+---
+
+```{r setup, echo=FALSE}
+# Global parameters for the project - centralized for easy adjustment
+params <- list(
+  # Project parameters
+  initCAPEX = -2000,          # $ billion initial investment
+  varCost = 8,               # Variable cost per barrel
+  fixedCost = -80,            # Annual fixed costs ($M)
+  capacity = 100000,          # Daily processing capacity
+  days_per_month = 30.5,        # Average days per month
+  freq = 1/12,                # Monthly cash flows
+  endValue = 200,             # Terminal value in $M
+  T2M = 20,                   # Project lifetime in years
+  X = 15,                     # Minimum operating threshold
+  Ti = 5,                     # Time for expansion option (year 5)
+  Ci = 25,                    # Spread threshold for expansion
+  expandCAPEX = -800,         # Expansion CAPEX in $M
+  expandCapacity = 0.6,       # 40% capacity increase
+  
+  # Simulation parameters
+  nsims = 10000,               # Number of simulations
+  nsims_analysis = 500,       # Number of simulations for analysis (for speed)
+  nsims_sensitivity = 100,     # Number of simulations for sensitivity analysis
+  seed = 567                  # Random seed to ensure reproducibility
+)
+
+# Additional derived parameters
+params$monthly_fixedCost <- params$fixedCost/12  # Convert annual to monthly
+```
+
+## Background
+
+Oil sands bitumen from Cold Lake (CL) trades at a discount to Western Canadian Select (WCS) and Synthetic Crude (SYN) due to its high viscosity and quality issues. An upgrader can transform this heavy crude into higher-value Synthetic Crude, capturing the spread between these two products.
+
+This assignment asks you to evaluate a proposed upgrader project using NPV\@Risk methodology, incorporating real options analysis and proper risk assessment.
+
+## Project Details
+
+You're the lead analyst at Suncor considering a \$2 billion investment in a new upgrader facility that would convert Cold Lake bitumen to Synthetic Crude. The project has the following characteristics:
+
+-   Initial CAPEX: \$2 billion
+-   Project lifetime: 20 years
+-   Upgrader capacity: 100,000 barrels per day
+-   Variable operating costs: \$8 per barrel
+-   Annual fixed operating costs: \$800 million
+-   Minimum operating threshold: The upgrader will only operate when the CL-SYN spread exceeds \$15/barrel (operating decision)
+-   Option to expand: At year 5, you can invest an additional \$800 million to increase capacity by 60%
+-   Terminal value: \$200 million (in year 20)
+
+Your assignment is to value this project and create a **business document** that summarizes your analysis, findings, and recommendations. The document should be concise, clear, and visually engaging, using tables and charts to support your conclusions. Eventually it will be streamlined for a presentation to executive team. For now, you are preparing a paper that you will present to your peers and your leader so as to ensure the analysis is robust and the recommendations are well-supported in both theory, practice and business communication.
+
+Everyone is aware that Suncor has enabled AI use and is expecting the same degree of due diligence on subject matter expertise and critical thinking as if you were doing this analysis without AI. But you are keenly aware that the expectations of productivity are higher as your role could be replaced if you don't provide distinctive and real insights into decision making!
+
+## Data
+
+Use `RTL::fizdiffs` from the RTL dev package from [Github](https://github.com/risktoollib/RTL), which contains historical differentials for crude oil benchmarks, including Western Canadian Select (WCS), Cold Lake (CL) and Synthetic Crude (SYN).
+
+## Hints
+
+1.  **Data Analysis & Parameter Estimation**
+    -   What does the the historical CL-SYN spread from the `fizdiffs` tell you?
+    -   Justify your parameter choices based on the data
+2.  **Simulation Setup**
+    -   Using your estimated parameters, simulate 10,000+ paths of the CL-SYN spread over 20 years
+3.  **NPV\@Risk Function**
+    -   Develop a comprehensive NPV\@Risk function that is clear and well-documented for the audience based on the mental model of the project economics.
+    -   Discounts cash flows using the yield curve from `RTL::usSwapCurves`
+4.  **Risk-Reward Analysis**
+    -   You are Finance specialist in real options.
+    -   Use to skills to analyze the risk-reward profile of the project and provide insights into the value of the operational flexibility and expansion option.
+    -   The Executive team is not as specialized as you are and operate under a deterministic capital framework e.g. NPV and waterfall charts. Yet they are open to new thinking provided it is well explained and supported by the data. So you need to be able to communicate the value of the project in a way that resonates with their mental model of risk and reward.
+    
+

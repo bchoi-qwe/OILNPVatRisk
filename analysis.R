@@ -23,9 +23,7 @@ df <- fizdiffs %>%
     ) %>%
     drop_na()
 
-# Export dataframe as a native tibble RDS file to preserve tidyverse structure
-write_rds(df, "cl_syn_spread_data.rds")
-cat("Tibble saved to cl_syn_spread_data.rds\n")
+
 
 # Compute summary stats
 sync_mean <- mean(df$spread)

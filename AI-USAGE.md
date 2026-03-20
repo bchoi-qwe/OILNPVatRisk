@@ -18,6 +18,7 @@ Any AI tool is permitted, including but not limited to:
 | Tool | Common Use Cases |
 |------|------------------|
 | **Claude** (Anthropic) | Code generation, conceptual explanations, document drafting, research |
+| **Antigravity** (Google) | Codebase-aware coding, math audits, refactoring, visualization |
 | **ChatGPT** (OpenAI) | Code generation, brainstorming, debugging, writing |
 | **GitHub Copilot** | Inline code completion, function scaffolding |
 | **Gemini** (Google) | Research, summarization, code assistance |
@@ -30,7 +31,7 @@ Any AI tool is permitted, including but not limited to:
 
 2. **Understand it.** You must be able to explain any AI-generated content you use. During peer review or presentation, "the AI wrote it" is not an acceptable explanation. If you can't defend it, remove it.
 
-3. **Verify it.** AI tools hallucinate — especially about R package APIs, function signatures, and statistical formulas. **Test every code suggestion.** Cross-reference every factual claim. Trust nothing blindly.
+3. **Verify the math.** AI tools hallucinate formulas — especially stochastic calculus, Ito's lemma, and risk-neutral dynamics. **Cross-reference every equation** against the source papers (NFCP vignette, PDSim paper, Schwartz & Smith 2000). This project has already caught an incorrect `-σ²/2` Ito correction that an AI introduced.
 
 4. **Adapt it.** Raw AI output rarely fits a project perfectly. Expect to modify, refactor, and integrate. Your value-add is the judgment to shape AI output into something correct and contextually appropriate.
 
@@ -44,9 +45,10 @@ Any AI tool is permitted, including but not limited to:
 - Asking AI to write or debug a function
 - Using AI to explain a statistical concept that shaped your approach
 - Having AI draft or edit report text
-- Using AI for research that informed parameter choices
-- Getting AI help with ggplot2 chart design
-- Architecture/design discussions with AI (e.g., "how should I structure the simulation loop?")
+- Using AI for research that informed parameter choices (e.g., Research/ documents)
+- Getting AI help with plotly/ggplot2 chart design
+- Architecture/design discussions with AI
+- Math audits or equation verification
 
 **Skip these:**
 - Autocomplete finishing a variable name
@@ -63,7 +65,7 @@ Copy the block below for each interaction. Fill it in honestly.
 ```markdown
 ### [YYYY-MM-DD] — [Your Name]
 
-**Tool:** [e.g., Claude 3.5 Sonnet / ChatGPT-4o / GitHub Copilot / etc.]
+**Tool:** [e.g., Claude 3.5 Sonnet / Antigravity / ChatGPT-4o / GitHub Copilot]
 **Task:** [One-line summary of what you asked for]
 **Prompt (summary or verbatim):**
 > [Paste your prompt, or summarize if it was a long conversation]
@@ -81,7 +83,7 @@ Copy the block below for each interaction. Fill it in honestly.
 [Describe your modifications. This is where you demonstrate critical thinking.]
 
 **Verification:**
-[How did you confirm the output was correct? Ran tests? Checked against docs? Compared to textbook?]
+[How did you confirm the output was correct? Ran tests? Checked against docs? Compared to source paper?]
 
 **Outcome:**
 [What ended up in the project? Which file(s) were affected?]
@@ -95,33 +97,37 @@ Copy the block below for each interaction. Fill it in honestly.
 
 ---
 
-### Team Member: [Name 1]
+### Team Member: Brandon Choi
 
-<!-- Paste completed log entries here. Most recent first. Example: -->
+### 2026-03-20 — Brandon Choi
 
-<!--
-### 2026-03-19 — Jane Doe
-
-**Tool:** Claude (Opus)
-**Task:** Research NPV@Risk methodology and RTL package capabilities
+**Tool:** Antigravity (Gemini)
+**Task:** Math audit of Schwartz-Smith two-factor simulation and plotly visualization
 **Prompt (summary):**
-> Help me understand the NPV@Risk project. Uploaded the assignment .qmd file and asked for a comprehensive research plan covering OU processes, real options, RTL functions, and executive communication.
+> WTI price modeled as a Schwartz-Smith two-factor process. Look at calibrate_NFCP, as well as simSchwartzSmith.R. Goal is the plotly plot. All math must be completely correct. Double check everything against the NFCP vignette and PDSim paper.
 
 **What AI produced:**
-Three research reports covering: OU process theory and calibration, RTL package functions (simOU, fitOU, npv, fizdiffs, usSwapCurves), real options (shutdown + expansion), oil sands economics, and visualization strategies.
+- Line-by-line audit of `simSchwartzSmith.R` against NFCP's actual `spot_price_simulate` source code
+- Identified and fixed a spurious `-σ²/2` Ito correction in the ABM drift for the long-term factor ξ
+- Identified a dormant bug in the extended model mean-reversion level (`mu_xi - lambda_xi` should be `mu_xi - lambda_xi/gamma` when γ > 0 and λ_ξ ≠ 0)
+- Created `plotSchwartzSmith.R`: 3-panel interactive plotly visualization (fan chart, factor decomposition, terminal distribution)
+- Refactored plot from hardcoded script into reusable `plotSchwartzSmith(sim, S0, ...)` function
 
 **How you used it:**
-- [x] Used as reference/inspiration only
+- [x] Substantially modified before use
 
 **What you changed and why:**
-Used the third report as a reference document for the team. Did not copy any text into the deliverable. Extracted key RTL function signatures and verified them against CRAN documentation.
+Reviewed the math audit against the source papers. The `-σ²/2` removal was confirmed correct — NFCP's `spot_price_simulate` uses `GBM_mu_rn * dt` with no Ito correction. The dormant `lambda_xi/gamma` bug was noted but not fixed since `lambda_xi = 0` in current usage.
 
 **Verification:**
-Cross-referenced all RTL function names and parameters against the official CRAN PDF manual (https://cran.r-project.org/web/packages/RTL/RTL.pdf). Confirmed fizdiffs dataset structure by running `str(RTL::fizdiffs)` locally.
+- Compared simulation code line-by-line against NFCP source code (`R/simulations.R` on GitHub)
+- Cross-referenced with NFCP vignette §3 (model equations) and PDSim paper §I (extended SS formulation)
+- Generated 500-path simulation and visually verified fan chart, factor decomposition, and terminal distribution
 
 **Outcome:**
-Informed project planning. No code or text added to deliverable directly.
--->
+- `Functions/simSchwartzSmith.R` — bug fix (removed `-σ²/2`)
+- `Functions/plotSchwartzSmith.R` — new file (replaces `plotlysim.R`)
+- `Functions/calibrate_NFCP.R` — updated reference comment
 
 ---
 
@@ -149,12 +155,12 @@ Update this table periodically (e.g., before each milestone or submission).
 
 | Metric | Count |
 |--------|-------|
-| Total logged interactions | 0 |
-| Interactions resulting in code | 0 |
+| Total logged interactions | 1 |
+| Interactions resulting in code | 1 |
 | Interactions resulting in report text | 0 |
 | Interactions used as reference only | 0 |
 | Interactions rejected / not used | 0 |
-| Unique tools used | 0 |
+| Unique tools used | 1 |
 
 ---
 
@@ -162,7 +168,7 @@ Update this table periodically (e.g., before each milestone or submission).
 
 Each team member should write 2–3 sentences here reflecting on how AI tools affected their work on this project. Be honest — what helped, what didn't, and what would you do differently?
 
-**[Name 1]:**
+**Brandon Choi:**
 > TBD
 
 **[Name 2]:**
