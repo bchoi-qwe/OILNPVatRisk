@@ -12,14 +12,20 @@ if(!("WCS.HDY" %in% names(fizdiffs)) || !("SYN.EDM" %in% names(fizdiffs)) || !("
     stop("Required columns not found in fizdiffs")
 }
 
-# 1. Compute spread
+# 1. Compute absolute prices and spread
 df <- fizdiffs %>%
-    select(date, WCS.HOU, WCS.CUS, WCS.HDY, CL.EDM, SYN.EDM) %>%
+    select(date, WTI.CMA01, WCS.HOU, WCS.CUS, WCS.HDY, CL.EDM, SYN.EDM) %>%
     mutate(
         CL_diff = WCS.HDY + CL.EDM,
-        spread = SYN.EDM - CL_diff
+        CL_abs = WTI.CMA01 + CL_diff,
+        SYN_abs = WTI.CMA01 + SYN.EDM,
+        spread = SYN_abs - CL_abs
     ) %>%
     drop_na()
+
+# Export dataframe as a native tibble RDS file to preserve tidyverse structure
+write_rds(df, "cl_syn_spread_data.rds")
+cat("Tibble saved to cl_syn_spread_data.rds\n")
 
 # Compute summary stats
 sync_mean <- mean(df$spread)
@@ -90,11 +96,12 @@ p4_sd <- ggplot(df, aes(x = date, y = rolling_sd)) +
     labs(x = "Date", y = "Rol. SD ($/bbl)", title = "Rolling Std. Dev (12m)") +
     theme_minimal()
 
-# 5. Individual price levels
-df_long_levels <- df %>% select(date, CL_diff, SYN.EDM) %>% pivot_longer(-date, names_to = "Crude", values_to = "Price")
+# 5. Individual absolute price levels
+df_long_levels <- df %>% select(date, CL_abs, SYN_abs) %>% pivot_longer(-date, names_to = "Crude", values_to = "Price")
 p5 <- ggplot(df_long_levels, aes(x = date, y = Price, color = Crude)) +
-    geom_line() +
-    labs(x = "Date", y = "Diff to WTI ($/bbl)", title = "5. CL vs SYN Diff to WTI") +
+    geom_line(alpha=0.8) +
+    labs(x = "Date", y = "Absolute Price ($/bbl)", title = "5. Absolute Price Levels") +
+    scale_color_manual(values = c("CL_abs" = "darkred", "SYN_abs" = "steelblue"), labels = c("Cold Lake", "Synthetic")) +
     theme_minimal() +
     theme(legend.position = "bottom")
 

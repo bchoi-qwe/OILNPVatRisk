@@ -1,0 +1,2 @@
+1. Simulating pricing must be done by thinking of the second and third order greeks for the simOU function.
+We should be thinking about grade, location, and timing for the pricing of these blends, as well as the cost of transportation. There is something going on, where our simulation for prices and which columns we are taking from the dataset should change in edge case scenarios.
